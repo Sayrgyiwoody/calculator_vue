@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Vue</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./bootstrap.min.css">
+    <link rel="icon"
+        href="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue.js_Logo_2.svg/2367px-Vue.js_Logo_2.svg.png">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row mt-5">
+            <div class="col-lg-4 offset-lg-4">
+                <div id="calculator" class="card border-0 rounded"
+                    style="box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; backdrop-filter: blur(10px);">
+                    <div class="card-body px-4">
+                        <div class="bg-light text-end p-3 rounded my-3 fs-3">{{answer}}</div>
+                        <div class="row g-0 mb-3">
+                            <div class="col">
+                                <input v-model="userInput.firstNum" type="number" class="border border-primary border-2 form-control form-control-lg rounded rounded-end-0"
+                                    placeholder="First number">
+                            </div>
+                            <div class="col">
+                                <input v-model="userInput.secondNum" type="number" class="border border-primary border-2 form-control form-control-lg rounded rounded-start-0"
+                                    placeholder="Second number">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <select v-model="userInput.operator" class="form-select border border-primary rounded border-2">
+                                    <option value="">Operator</option>
+                                    <option value="+">+</option>
+                                    <option value="-">-</option>
+                                    <option value="*">*</option>
+                                    <option value="/">/</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <button @click="calculate" class="btn rounded w-100 btn-success"><i
+                                        class="fa-solid fa-calculator me-2"></i>Calculate</button>
+                            </div>
+                            <div class="col">
+                                <button @click="save" class="btn rounded w-100 btn-info"><i
+                                        class="fa-regular fa-floppy-disk me-2"></i>Save</button>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <button @click="clearAll" class="btn rounded w-100 btn-danger"><i
+                                        class="fa-solid fa-eraser me-2"></i>Clear</button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row mb-2 px-2">
+                            <h4 class="text-success">History</h4>
+                            <div class="" v-for="(h,index) in history" :key="index">
+                                <div class="input-group mb-3 ">
+                                    <input type="text" class="form-control rounded rounded-end-0" readonly v-model="h.answer">
+                                    <div @click="deleteHistory(index)" class="btn btn-danger rounded rounded-start-0" id="basic-addon2"><i class="fa-solid fa-trash"></i></div>
+                                </div>
+                                <!-- <div class="row">
+                                    <div class="col-8">
+                                        <input type="text" class="form-control" readonly v-model="h.answer">
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-danger"><i class="fa-solid fa-trash"></i>Delete</button>
+                                    </div>
+                                </div> -->
+                            </div>
+                            <!-- <p v-for="h in history">{{h.answer}}</p> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let calculator = new Vue({
+            el : '#calculator',
+            data : {
+                userInput : {
+                    firstNum : '',
+                    secondNum : '',
+                    operator : '',
+                },
+                answer : '0',
+                history : [],
+                validation : {
+                    firstNum : false,
+                    secondNum : false,
+                    operator : false,
+                }
+            },
+            created() {
+                this.fetchHistory();
+            },
+            methods : {
+                calculate(){
+                    let num1 = parseInt(this.userInput.firstNum);
+                    let num2 = parseInt(this.userInput.secondNum);
+                    let operator = this.userInput.operator;
+                    let validateStatus = this.validateForm();
+                    if (validateStatus == true) {
+                        let result = this.calculation(num1,num2,operator);
+                        this.answer=`${num1} ${operator} ${num2} = ${result}`;
+                        this.clearForm();
+                    }
+                },
+
+                calculation(num1,num2,operator) {
+                    let result;
+                    switch(operator) {
+                        case '+':
+                        result = num1 + num2;
+                        break;
+                        case '-':
+                        result = num1 - num2;
+                        break;
+                        case '*':
+                        result = num1 * num2;
+                        break;
+                        case '/':
+                        result = num1 / num2;
+                        break;
+                        default: 
+                        return 'error';
+                        break;
+                    }
+                    return result;
+                },
+                
+                clearForm() {
+                    this.userInput.firstNum = '';
+                    this.userInput.secondNum = '';
+                    this.userInput.operator = '';
+                },
+
+                clearAll() {
+                    this.clearForm();
+                    this.answer = '0';
+                },
+
+                save() {
+                    this.history.push({
+                        answer : this.answer
+                    });
+                    localStorage.setItem('history', JSON.stringify(this.history));
+                },
+
+                validateForm() {
+                    this.validation.firstNum = this.userInput.firstNum == '' || null? true : false;
+                    this.validation.secondNum = this.userInput.secondNum == '' || null? true : false; 
+                    this.validation.operator = this.userInput.operator == '' || null? true : false; 
+                    if(this.validation.firstNum == false && this.validation.secondNum == false && this.validation.operator == false) {
+                        return true;
+                    } else {
+                        let errorMessage = '';
+                        if (this.validation.firstNum) {
+                            errorMessage += 'First number is required. ';
+                        }
+                        if (this.validation.secondNum) {
+                            errorMessage += 'Second number is required. ';
+                        }
+                        if (this.validation.operator) {
+                            errorMessage += 'Operator is required. ';
+                        }
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Check your inputs',
+                        text: `${errorMessage}`,
+                        })
+                    return false;
+                    }
+                },
+                fetchHistory() {
+                    const storedHistory = localStorage.getItem('history');
+                    if (storedHistory) {
+                        this.history = JSON.parse(storedHistory);
+                    }
+                },
+
+                deleteHistory(index) {
+                    this.history.splice(index,1);
+                    localStorage.setItem('history', JSON.stringify(this.history));
+                }
+            }
+        })
+    </script>
+
+</body>
+
+</html>
